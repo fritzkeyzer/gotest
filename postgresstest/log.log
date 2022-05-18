@@ -1,0 +1,8 @@
+2022/02/04 22:45:10 [ DBG ] [ DB ]: debug enabled
+2022/02/04 22:45:10 [ DBG ] [ DB ]: DeleteAllStudents success
+2022/02/04 22:45:10 [ DBG ] [ DB ]: InsertStudent success { {Name:Bob Age:60} }
+2022/02/04 22:45:10 [ DBG ] [ DB ]: GetAllStudents success { [{Name:Bob Age:60}] }
+2022/02/04 22:45:43 [ DBG ] [ DB ]: debug enabled
+2022/02/04 22:45:43 [ DBG ] [ DB ]: DeleteAllStudents success
+2022/02/04 22:45:43 [ DBG ] [ DB ]: InsertStudent success { {Name:Bob Age:60} }
+2022/02/04 22:45:43 [ DBG ] [ DB ]: GetAllStudents success { [{Name:Bob Age:60}] }

@@ -1,0 +1,29 @@
+time="2022-01-17T16:08:55+02:00" level=info msg=asdasd
+time="2022-01-17T16:08:55+02:00" level=info msg="A walrus appears" animal=walrus
+time="2022-01-17T16:08:55+02:00" level=error msg="some error occured" f1=val1 f2=val2
+time="2022-01-17T16:08:55+02:00" level=info msg="A group of walrus emerges from the ocean" animal=walrus size=10
+time="2022-01-17T16:08:55+02:00" level=warning msg="The group's number increased tremendously!" number=122 omg=true
+time="2022-01-17T16:08:55+02:00" level=info msg="Something noteworthy happened!"
+time="2022-01-17T16:08:55+02:00" level=warning msg="You should probably take a look at this."
+time="2022-01-17T16:08:55+02:00" level=error msg="Something failed but I'm not quitting."
+time="2022-01-17T16:08:55+02:00" level=fatal msg=Bye.
+time="2022-01-17T16:09:07+02:00" level=info msg=asdasd
+time="2022-01-17T16:09:07+02:00" level=info msg="A walrus appears" animal=walrus
+time="2022-01-17T16:09:07+02:00" level=error msg="some error occured" f1=val1 f2=val2
+time="2022-01-17T16:09:07+02:00" level=info msg="A group of walrus emerges from the ocean" animal=walrus size=10
+time="2022-01-17T16:09:07+02:00" level=warning msg="The group's number increased tremendously!" number=122 omg=true
+time="2022-01-17T16:09:07+02:00" level=info msg="[103 111 114 111 117 116 105 110 101 32 49 32 91 114 117 110 110 105 110 103 93 58 10 114 117 110 116 105 109 101 47 100 101 98 117 103 46 83 116 97 99 107 40 48 120 99 48 48 48 49 51 56 52 54 48 44 32 48 120 99 48 48 48 48 48 48 48 48 51 44 32 48 120 99 48 48 48 49 50 100 97 53 56 41 10 9 67 58 47 80 114 111 103 114 97 109 32 70 105 108 101 115 47 71 111 47 115 114 99 47 114 117 110 116 105 109 101 47 100 101 98 117 103 47 115 116 97 99 107 46 103 111 58 50 52 32 43 48 120 97 53 10 109 97 105 110 46 109 97 105 110 40 41 10 9 68 58 47 79 110 101 68 114 105 118 101 47 114 101 112 111 115 47 116 101 115 116 47 108 117 109 98 101 114 106 97 99 107 116 101 115 116 47 109 97 105 110 46 103 111 58 53 48 32 43 48 120 55 55 49 10]"
+time="2022-01-17T16:09:07+02:00" level=info msg="Something noteworthy happened!"
+time="2022-01-17T16:09:07+02:00" level=warning msg="You should probably take a look at this."
+time="2022-01-17T16:09:07+02:00" level=error msg="Something failed but I'm not quitting."
+time="2022-01-17T16:09:07+02:00" level=fatal msg=Bye.
+time="2022-01-17T16:09:48+02:00" level=info msg=asdasd
+time="2022-01-17T16:09:48+02:00" level=info msg="A walrus appears" animal=walrus
+time="2022-01-17T16:09:48+02:00" level=error msg="some error occured" f1=val1 f2=val2
+time="2022-01-17T16:09:48+02:00" level=info msg="A group of walrus emerges from the ocean" animal=walrus size=10
+time="2022-01-17T16:09:48+02:00" level=warning msg="The group's number increased tremendously!" number=122 omg=true
+time="2022-01-17T16:09:48+02:00" level=info msg="goroutine 1 [running]:\nruntime/debug.Stack(0xc000138460, 0xc000000003, 0xc00012da58)\n\tC:/Program Files/Go/src/runtime/debug/stack.go:24 +0xa5\nmain.main()\n\tD:/OneDrive/repos/test/lumberjacktest/main.go:50 +0x771\n"
+time="2022-01-17T16:09:48+02:00" level=info msg="Something noteworthy happened!"
+time="2022-01-17T16:09:48+02:00" level=warning msg="You should probably take a look at this."
+time="2022-01-17T16:09:48+02:00" level=error msg="Something failed but I'm not quitting."
+time="2022-01-17T16:09:48+02:00" level=fatal msg=Bye.

@@ -1,0 +1,1 @@
+from https://golangbot.com/webassembly-using-go/

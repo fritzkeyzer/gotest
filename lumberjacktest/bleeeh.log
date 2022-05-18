@@ -1,0 +1,60 @@
+2022/01/17 15:22:46 info
+2022/01/17 15:22:46 eish
+2022/01/17 15:23:08 asdasd
+2022/01/17 15:23:08 eish
+time="2022-01-17T15:25:37+02:00" level=info msg=asdasd
+time="2022-01-17T15:25:37+02:00" level=info msg="A walrus appears" animal=walrus
+time="2022-01-17T15:27:04+02:00" level=info msg=asdasd
+time="2022-01-17T15:27:04+02:00" level=info msg="A walrus appears" animal=walrus
+time="2022-01-17T15:27:04+02:00" level=error msg="some error occured" f1=val1 f2=val2
+{"level":"info","msg":"asdasd","time":"2022-01-17T15:28:04+02:00"}
+{"animal":"walrus","level":"info","msg":"A walrus appears","time":"2022-01-17T15:28:04+02:00"}
+{"f1":"val1","f2":"val2","level":"error","msg":"some error occured","time":"2022-01-17T15:28:04+02:00"}
+time="2022-01-17T15:28:49+02:00" level=info msg=asdasd
+time="2022-01-17T15:28:49+02:00" level=info msg="A walrus appears" animal=walrus
+time="2022-01-17T15:28:49+02:00" level=error msg="some error occured" f1=val1 f2=val2
+time="2022-01-17T15:28:49+02:00" level=info msg="A group of walrus emerges from the ocean" animal=walrus size=10
+time="2022-01-17T15:28:49+02:00" level=warning msg="The group's number increased tremendously!" number=122 omg=true
+time="2022-01-17T15:28:49+02:00" level=fatal msg="The ice breaks!" number=100 omg=true
+time="2022-01-17T15:30:21+02:00" level=info msg=asdasd
+time="2022-01-17T15:30:21+02:00" level=info msg="A walrus appears" animal=walrus
+time="2022-01-17T15:30:21+02:00" level=error msg="some error occured" f1=val1 f2=val2
+time="2022-01-17T15:30:21+02:00" level=info msg="A group of walrus emerges from the ocean" animal=walrus size=10
+time="2022-01-17T15:30:21+02:00" level=warning msg="The group's number increased tremendously!" number=122 omg=true
+time="2022-01-17T15:30:21+02:00" level=fatal msg="The ice breaks!" number=100 omg=true
+time="2022-01-17T15:31:00+02:00" level=info msg=asdasd
+time="2022-01-17T15:31:00+02:00" level=info msg="A walrus appears" animal=walrus
+time="2022-01-17T15:31:00+02:00" level=error msg="some error occured" f1=val1 f2=val2
+time="2022-01-17T15:31:00+02:00" level=info msg="A group of walrus emerges from the ocean" animal=walrus size=10
+time="2022-01-17T15:31:00+02:00" level=warning msg="The group's number increased tremendously!" number=122 omg=true
+time="2022-01-17T15:31:00+02:00" level=info msg="Something noteworthy happened!"
+time="2022-01-17T15:31:00+02:00" level=warning msg="You should probably take a look at this."
+time="2022-01-17T15:31:00+02:00" level=error msg="Something failed but I'm not quitting."
+time="2022-01-17T15:31:00+02:00" level=fatal msg=Bye.
+time="2022-01-17T16:07:41+02:00" level=info msg=asdasd
+time="2022-01-17T16:07:41+02:00" level=info msg="A walrus appears" animal=walrus
+time="2022-01-17T16:07:41+02:00" level=error msg="some error occured" f1=val1 f2=val2
+time="2022-01-17T16:07:41+02:00" level=info msg="A group of walrus emerges from the ocean" animal=walrus size=10
+time="2022-01-17T16:07:41+02:00" level=warning msg="The group's number increased tremendously!" number=122 omg=true
+time="2022-01-17T16:07:41+02:00" level=info msg="Something noteworthy happened!"
+time="2022-01-17T16:07:41+02:00" level=warning msg="You should probably take a look at this."
+time="2022-01-17T16:07:41+02:00" level=error msg="Something failed but I'm not quitting."
+time="2022-01-17T16:07:41+02:00" level=fatal msg=Bye.
+time="2022-01-17T16:08:18+02:00" level=info msg=asdasd
+time="2022-01-17T16:08:18+02:00" level=info msg="A walrus appears" animal=walrus
+time="2022-01-17T16:08:18+02:00" level=error msg="some error occured" f1=val1 f2=val2
+time="2022-01-17T16:08:18+02:00" level=info msg="A group of walrus emerges from the ocean" animal=walrus size=10
+time="2022-01-17T16:08:18+02:00" level=warning msg="The group's number increased tremendously!" number=122 omg=true
+time="2022-01-17T16:08:18+02:00" level=info msg="Something noteworthy happened!"
+time="2022-01-17T16:08:18+02:00" level=warning msg="You should probably take a look at this."
+time="2022-01-17T16:08:18+02:00" level=error msg="Something failed but I'm not quitting."
+time="2022-01-17T16:08:18+02:00" level=fatal msg=Bye.
+time="2022-01-17T16:08:35+02:00" level=info msg=asdasd
+time="2022-01-17T16:08:35+02:00" level=info msg="A walrus appears" animal=walrus
+time="2022-01-17T16:08:35+02:00" level=error msg="some error occured" f1=val1 f2=val2
+time="2022-01-17T16:08:35+02:00" level=info msg="A group of walrus emerges from the ocean" animal=walrus size=10
+time="2022-01-17T16:08:35+02:00" level=warning msg="The group's number increased tremendously!" number=122 omg=true
+time="2022-01-17T16:08:35+02:00" level=info msg="Something noteworthy happened!"
+time="2022-01-17T16:08:35+02:00" level=warning msg="You should probably take a look at this."
+time="2022-01-17T16:08:35+02:00" level=error msg="Something failed but I'm not quitting."
+time="2022-01-17T16:08:35+02:00" level=fatal msg=Bye.

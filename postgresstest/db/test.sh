@@ -1,0 +1,1 @@
+go test -connstring "postgres://postgres:password@localhost:5432/postgres" #-debug
