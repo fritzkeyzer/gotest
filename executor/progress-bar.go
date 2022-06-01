@@ -18,7 +18,7 @@ type ProgressBar struct {
 	totalDurationEst time.Duration
 }
 
-func NewBar(length int) *ProgressBar {
+func NewProgressbar(length int) *ProgressBar {
 	return &ProgressBar{
 		mu:        &sync.Mutex{},
 		totLength: length,
@@ -28,6 +28,7 @@ func NewBar(length int) *ProgressBar {
 	}
 }
 
+// Start should be called immediately prior to execution of tasks
 func (b *ProgressBar) Start() {
 	b.mu.Lock()
 	defer b.mu.Unlock()
@@ -40,13 +41,14 @@ func (b *ProgressBar) Start() {
 	go func() {
 		for b.isRunning() {
 			time.Sleep(1 * time.Second)
-			b.Update()
+			b.update()
 		}
 	}()
 
 	b.printBar()
 }
 
+// Increment should be called each time a task is completed
 func (b *ProgressBar) Increment() {
 	b.mu.Lock()
 	defer b.mu.Unlock()
@@ -69,13 +71,7 @@ func (b *ProgressBar) Increment() {
 	b.printBar()
 }
 
-func (b *ProgressBar) Update() {
-	b.mu.Lock()
-	defer b.mu.Unlock()
-
-	b.printBar()
-}
-
+// Cancel should be called when exiting unexpectedly
 func (b *ProgressBar) Cancel() {
 	b.mu.Lock()
 	defer b.mu.Unlock()
@@ -86,6 +82,25 @@ func (b *ProgressBar) Cancel() {
 	b.status = 2
 }
 
+// update is called internally, by another thread, once per second.
+// It refreshes the bar and ETA text
+func (b *ProgressBar) update() {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+
+	b.printBar()
+}
+
+// isRunning is a thread safe wrapper for checking the status of the executor
+func (b *ProgressBar) isRunning() bool {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+
+	return b.status == 1
+}
+
+// printBar is called internally and prints the progress bar and text to the terminal.
+// printBar is does not use locks, it is called within other locking functions!
 func (b *ProgressBar) printBar() {
 	percentageComplete := (float64(b.progress) / float64(b.totLength)) * 100
 
@@ -128,11 +143,4 @@ func (b *ProgressBar) printBar() {
 	}
 
 	fmt.Println(bar)
-}
-
-func (b *ProgressBar) isRunning() bool {
-	b.mu.Lock()
-	defer b.mu.Unlock()
-
-	return b.status == 1
 }

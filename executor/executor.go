@@ -8,9 +8,8 @@ import (
 )
 
 // Execute will run the function defined by fn for each element in the provided data.
-// The data argument will be converted to type []any - if this fails
+// The generic data argument will be cast to type []any.
 // Number of parallel executions can be specified or left automatic by using 0
-// If the slice cannot be converted, the function will panic.
 func Execute(data any, fn func(v any), parallel int) (err error) {
 	defer func() {
 		if err2 := recover(); err2 != nil {
@@ -25,7 +24,7 @@ func Execute(data any, fn func(v any), parallel int) (err error) {
 	}
 
 	// progress bar:
-	progressBar := NewBar(len(sliceOfData))
+	progressBar := NewProgressbar(len(sliceOfData))
 	defer progressBar.Cancel()
 
 	// create a channel of bools, to limit parallel executions
