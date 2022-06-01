@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-var Indent = "   "
+var Indent = "     "
 
 type Flag int
 
@@ -50,10 +50,10 @@ func Write(w io.Writer, prefix, indent string, value interface{}, flags ...Flag)
 
 		}
 	}
-	write(w, "", reflect.ValueOf(value), 0, maxDepth, pointerAddress, singleLine, escapeString)
+	write(w, "", reflect.ValueOf(value), reflect.TypeOf(value), 0, maxDepth, pointerAddress, singleLine, escapeString)
 }
 
-func write(w io.Writer, prefix string, v reflect.Value, depth, maxDepth int, pointerAddress, singleLine, escapeString bool) {
+func write(w io.Writer, prefix string, v reflect.Value, t reflect.Type, depth, maxDepth int, pointerAddress, singleLine, escapeString bool) {
 
 	if maxDepth > 0 && depth > maxDepth {
 		fmt.Fprintf(w, "...")
@@ -98,16 +98,17 @@ func write(w io.Writer, prefix string, v reflect.Value, depth, maxDepth int, poi
 			return
 		}
 		if pointerAddress {
-			fmt.Fprintf(w, "%p -> ", v.Interface())
+			fmt.Fprintf(w, "%p ", v.Interface())
 		}
-		write(w, prefix, v.Elem(), depth+1, maxDepth, pointerAddress, singleLine, escapeString)
+		fmt.Fprintf(w, "-> ")
+		write(w, prefix, v.Elem(), v.Elem().Type(), depth+1, maxDepth, pointerAddress, singleLine, escapeString)
 
 	case reflect.Interface:
 		if v.IsNil() {
 			fmt.Fprint(w, "nil")
 			return
 		}
-		write(w, prefix, v.Elem(), depth+1, maxDepth, pointerAddress, singleLine, escapeString)
+		write(w, prefix, v.Elem(), v.Elem().Type(), depth+1, maxDepth, pointerAddress, singleLine, escapeString)
 
 	case reflect.Slice:
 		if v.IsNil() {
@@ -127,7 +128,7 @@ func write(w io.Writer, prefix string, v reflect.Value, depth, maxDepth int, poi
 			if !singleLine {
 				fmt.Fprintf(w, "\n%s", prefix+Indent)
 			}
-			write(w, prefix+Indent, v.Index(i), depth+1, maxDepth, pointerAddress, singleLine, escapeString)
+			write(w, prefix+Indent, v.Index(i), v.Index(i).Type(), depth+1, maxDepth, pointerAddress, singleLine, escapeString)
 			fmt.Fprintf(w, ", ")
 		}
 		if !singleLine {
@@ -141,9 +142,9 @@ func write(w io.Writer, prefix string, v reflect.Value, depth, maxDepth int, poi
 			if !singleLine {
 				fmt.Fprintf(w, "\n%s", prefix+Indent)
 			}
-			write(w, prefix+Indent, key, depth+1, maxDepth, pointerAddress, singleLine, escapeString)
+			write(w, prefix+Indent, key, key.Type(), depth+1, maxDepth, pointerAddress, singleLine, escapeString)
 			fmt.Fprintf(w, ": ")
-			write(w, prefix+Indent, v.MapIndex(key), depth+1, maxDepth, pointerAddress, singleLine, escapeString)
+			write(w, prefix+Indent, v.MapIndex(key), v.MapIndex(key).Type(), depth+1, maxDepth, pointerAddress, singleLine, escapeString)
 			fmt.Fprintf(w, ", ")
 		}
 		if !singleLine {
@@ -152,13 +153,13 @@ func write(w io.Writer, prefix string, v reflect.Value, depth, maxDepth int, poi
 		fmt.Fprintf(w, "}")
 
 	case reflect.Struct:
-		fmt.Fprintf(w, "{")
+		fmt.Fprintf(w, "%s{", t.Name())
 		for i := 0; i < v.NumField(); i += 1 {
 			if !singleLine {
 				fmt.Fprintf(w, "\n%s", prefix+Indent)
 			}
 			fmt.Fprintf(w, "%s: ", v.Type().Field(i).Name)
-			write(w, prefix+Indent, v.Field(i), depth+1, maxDepth, pointerAddress, singleLine, escapeString)
+			write(w, prefix+Indent, v.Field(i), v.Field(i).Type(), depth+1, maxDepth, pointerAddress, singleLine, escapeString)
 			fmt.Fprintf(w, " ")
 		}
 		if !singleLine {

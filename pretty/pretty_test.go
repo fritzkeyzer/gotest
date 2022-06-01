@@ -1,6 +1,7 @@
 package pretty
 
 import (
+	"fmt"
 	"testing"
 )
 
@@ -28,5 +29,25 @@ func TestPrint(t *testing.T) {
 		friends map[string]Person
 	}
 
-	Print(Person{})
+	s := String(Person{}, -1)
+	fmt.Println(s)
+
+	Print(Person{
+		Spouse:   &Person{},
+		spouse:   &Person{},
+		Children: []Person{{}, {}},
+		children: []Person{{}, {}},
+		Friends:  nil,
+		friends:  nil,
+	})
+
+	s = String(Person{
+		Spouse:   &Person{},
+		spouse:   &Person{},
+		Children: []Person{{}, {}},
+		children: []Person{{}, {}},
+		Friends:  nil,
+		friends:  nil,
+	}, -1)
+	fmt.Println(s)
 }
