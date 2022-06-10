@@ -2,31 +2,54 @@ package batch
 
 import (
 	"fmt"
+	"golang.org/x/crypto/ssh/terminal"
+	"math"
+	"os"
 	"sync"
+	"sync/atomic"
 	"time"
 )
 
-const ClearLine = "\033[1A\033\r"
+const (
+	clearLine     = "\033[1A\033\r"
+	deleteLine    = "\033[M"
+	colorClear    = "\033[00;32m"
+	colorGreen    = "\033[01;32m"
+	backSpace     = "\b"
+	cursorSave    = "\033[7"
+	cursorRestore = "\033[8"
+	deleteToEnd   = "\033[0J"
 
-//const ClearLine = "\n"
+	// states:
+	startup   = 0
+	running   = 1
+	complete  = 2
+	cancelled = 3
+	shutdown  = 4
+)
 
 type ProgressBar struct {
 	mu               *sync.Mutex
 	totLength        int
 	progress         int
 	startTime        time.Time
-	status           int
+	status           int32
 	barLength        int
+	lastPrintLength  int
 	totalDurationEst time.Duration
+	totalTime        time.Duration
 }
 
 func NewProgressBar(length int) *ProgressBar {
+	w := getWidth()
+	w = int(math.Max(5, float64(w-50)))
+
 	return &ProgressBar{
 		mu:        &sync.Mutex{},
 		totLength: length,
 		progress:  0,
 		status:    0,
-		barLength: 20,
+		barLength: w,
 	}
 }
 
@@ -35,17 +58,17 @@ func (b *ProgressBar) Start() {
 	b.mu.Lock()
 	defer b.mu.Unlock()
 
-	if b.status == 0 {
-		b.startTime = time.Now()
-		b.status = 1
-	}
+	b.startTime = time.Now()
+	atomic.StoreInt32(&b.status, running)
 
 	go func() {
-		for b.isRunning() {
-			time.Sleep(1 * time.Second)
-			b.update()
+		for b.readStatus() != shutdown {
+			time.Sleep(100 * time.Millisecond)
+			b.printBar()
 		}
 	}()
+
+	fmt.Println()
 
 	b.printBar()
 }
@@ -55,59 +78,50 @@ func (b *ProgressBar) Increment() {
 	b.mu.Lock()
 	defer b.mu.Unlock()
 
-	if b.status == 0 {
-		b.startTime = time.Now()
-		b.status = 1
-	}
 	b.progress++
 
 	// update duration estimate
 	completeRatio := float64(b.progress) / float64(b.totLength)
 	durRemainingS := time.Now().Sub(b.startTime).Seconds() / completeRatio
-	totDuration, err := time.ParseDuration(fmt.Sprintf("%.0fs", durRemainingS))
+	totDuration, err := time.ParseDuration(fmt.Sprintf("%fs", durRemainingS))
 	if err != nil {
 		panic(err)
 	}
 	b.totalDurationEst = totDuration
 
-	b.printBar()
+	if b.progress == b.totLength && b.readStatus() == running {
+		atomic.StoreInt32(&b.status, complete)
+		b.totalTime = time.Now().Sub(b.startTime)
+		b.printBar()
+	}
 }
 
 // Cancel should be called when exiting unexpectedly.
 func (b *ProgressBar) Cancel() {
+	time.Sleep(100 * time.Millisecond)
 	b.mu.Lock()
 	defer b.mu.Unlock()
 
-	if b.status != 1 {
+	if b.readStatus() == complete || b.readStatus() == cancelled || b.readStatus() == shutdown {
 		return
 	}
-	b.status = 2
-}
 
-// update is called internally, by another thread, once per second.
-// It refreshes the bar and ETA text.
-func (b *ProgressBar) update() {
-	b.mu.Lock()
-	defer b.mu.Unlock()
-
+	atomic.StoreInt32(&b.status, cancelled)
+	b.totalTime = time.Now().Sub(b.startTime)
 	b.printBar()
 }
 
-// isRunning is a thread safe wrapper for checking the status of the executor.
-func (b *ProgressBar) isRunning() bool {
-	b.mu.Lock()
-	defer b.mu.Unlock()
-
-	return b.status == 1
-}
-
-// printBar is called internally and prints the progress bar and text to the terminal.
-// printBar does not use locks, it is called within other locking functions!
+// printBar: THREAD-UNSAFE!
 func (b *ProgressBar) printBar() {
+
+	if b.readStatus() == shutdown {
+		return
+	}
+
 	percentageComplete := (float64(b.progress) / float64(b.totLength)) * 100
 
-	// print ProgressBar
-	bar := ClearLine + fmt.Sprintf("%d / %d", b.progress, b.totLength)
+	// build bar string
+	bar := clearLine + deleteLine + fmt.Sprintf("%d / %d", b.progress, b.totLength)
 
 	bar += " ["
 	d := 100 / float64(b.barLength)
@@ -116,33 +130,103 @@ func (b *ProgressBar) printBar() {
 		if i < int(percentageComplete/d) {
 			c = "="
 		} else if i == int(percentageComplete/d) {
+			//c = string(rune(187))
 			c = ">"
 		}
 		bar += c
 	}
 	bar += "] "
-	bar += fmt.Sprintf("%3.0f", percentageComplete)
+	bar += fmt.Sprintf("%3.0f", math.Floor(percentageComplete))
 	bar += "%"
 
-	if percentageComplete == 0 {
+	switch b.readStatus() {
+	case startup:
 		bar += " - Remaining: ??"
-	} else if percentageComplete == 100 {
-		comDurS := time.Now().Sub(b.startTime).Seconds()
-		comDur, err := time.ParseDuration(fmt.Sprintf("%.0fs", comDurS))
-		if err != nil {
-			panic(err)
+
+	case running:
+		if percentageComplete == 0 {
+			bar += " - Remaining: ??"
+		} else {
+			bar += " - Remaining: "
+			bar += formatDuration(b.totalDurationEst - time.Now().Sub(b.startTime))
 		}
-		bar += fmt.Sprintf(" - Completed: %v", comDur)
-	} else {
-		currDurS := time.Now().Sub(b.startTime).Seconds()
-		durRemainingS := b.totalDurationEst.Seconds() - currDurS
-		durRemaining, err := time.ParseDuration(fmt.Sprintf("%.0fs", durRemainingS))
-		if err != nil {
-			panic(err)
-		}
-		bar += " - Remaining: "
-		bar += fmt.Sprint(durRemaining)
+
+	case complete:
+		bar += " - Completed: "
+		bar += formatDuration(b.totalTime)
+		atomic.StoreInt32(&b.status, shutdown)
+
+	case cancelled:
+		bar += " - Cancelled: "
+		bar += formatDuration(b.totalTime)
+		atomic.StoreInt32(&b.status, shutdown)
+
+	case shutdown:
+		return
 	}
 
-	fmt.Println(bar)
+	bar += "\n"
+
+	b.lastPrintLength = len(bar)
+	fmt.Print(bar)
+}
+
+// isRunning: THREAD-UNSAFE!
+func (b *ProgressBar) isRunning() bool {
+	return atomic.LoadInt32(&b.status) == running
+}
+
+func (b *ProgressBar) readStatus() int32 {
+	return atomic.LoadInt32(&b.status)
+}
+
+func formatDuration(dur time.Duration) string {
+	//var d time.Duration
+	//if s > 100 {
+	//	d = dur.Truncate(1000 * time.Millisecond)
+	//} else if s > 10 {
+	//	d = dur.Truncate(100 * time.Millisecond)
+	//} else if s > 1 {
+	//	d = dur.Truncate(10 * time.Millisecond)
+	//} else if s > 0.1 {
+	//	d = dur.Truncate(1 * time.Millisecond)
+	//}
+
+	s := sf(dur.Seconds(), 3)
+	d, _ := time.ParseDuration(fmt.Sprintf("%fs", s))
+
+	return fmt.Sprintf("%s", d)
+}
+
+func sf(input float64, n uint) float64 {
+	check := math.Pow10(int(n) - 1)
+	sign := 1.0
+
+	if input == 0 {
+		return 0
+	} else if input < 0 {
+		sign = -1.0
+	}
+
+	i := 0
+	m := sign * math.Pow10(i) // first iteration m = 1
+
+	for input*m < check {
+		m = sign * math.Pow10(i)
+		i++
+	}
+
+	return math.Trunc(input*m) / m
+}
+
+func getWidth() int {
+	width, _, err := terminal.GetSize(int(os.Stdout.Fd()))
+	if err != nil {
+		width, _, err = terminal.GetSize(int(os.Stderr.Fd()))
+		if err != nil {
+			width = 20
+		}
+	}
+
+	return width
 }

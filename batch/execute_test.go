@@ -2,103 +2,122 @@ package batch
 
 import (
 	"fmt"
-	"log"
-	"math/rand"
 	"testing"
 	"time"
 )
 
-func TestExecute(t *testing.T) {
+func fn(d int) error {
+	time.Sleep(10 * time.Microsecond)
 
-	rand.Seed(time.Now().Unix())
-
-	type person struct {
-		name   string
-		age    int
-		friend *person
+	if d < 0 {
+		return fmt.Errorf("we dislike negative numbers")
+	}
+	if d == 13 {
+		panic("we really dislike 13")
 	}
 
-	data := []*person{
-		{
-			name: "bob 😃",
-			age:  0,
-		}, {
-			name: "alice",
-			age:  0,
-		}, {
-			name: "charlie",
-			age:  0,
-		}, {
-			name: "jack",
-			age:  0,
-		}, {
-			name: "sparrow",
-			age:  0,
-			friend: &person{
-				name: "frankie",
-				age:  0,
-			},
-		}, {
-			name: "jack",
-			age:  0,
-		}, {
-			name: "jack",
-			age:  0,
-		}, {
-			name: "jack",
-			age:  0,
-		}, {
-			name: "jack",
-			age:  0,
-		}, {
-			name: "jack",
-			age:  0,
-		},
-	}
+	return nil
+}
 
-	fn := func(p *person) error {
-		p.age = len(p.name)
+func TestParallel(t *testing.T) {
+	var data []int
 
-		if rand.Float64() < 0.02 {
-			panic("unlucky 2 percent")
+	for i := 0; i < 100000; i++ {
+		val := i
+		if val == 13 {
+			val = 12 // 13 panics!
 		}
-
-		time.Sleep(200 * time.Millisecond)
-
-		if rand.Float64() < 0.3 {
-			time.Sleep(500 * time.Millisecond)
-			return fmt.Errorf("unlucky 30 percent %f", rand.Float64())
-		}
-
-		time.Sleep(300 * time.Millisecond)
-
-		return nil
+		data = append(data, val)
 	}
 
-	err := Execute(data, fn, 1, true)
-	if err != nil {
-		t.Failed()
+	for i := 0; i < 10; i++ {
+		fmt.Printf("parallel : %d\n", i)
+		err := Execute(data, fn, i, true)
+		if err != nil {
+			t.Error(err)
+		}
+	}
 
-		e, isTaskError := err.(TaskError)
-		if isTaskError {
-			fmt.Println("we had task errors:", e)
+	//fmt.Println("parallel : 0")
+	//err = Execute(data, fn, 0, true)
+	//if err != nil {
+	//	t.Error(err)
+	//}
+	//fmt.Println("parallel : 1")
+	//err = Execute(data, fn, 1, true)
+	//if err != nil {
+	//	t.Error(err)
+	//}
+	//fmt.Println("parallel : 4")
+	//err = Execute(data, fn, 4, true)
+	//if err != nil {
+	//	t.Error(err)
+	//}
+}
 
+func TestError(t *testing.T) {
+	for i := -1; i < 10; i++ {
+		fmt.Printf("parallel : %d - with errors: \n", i)
+		data := []int{0, 1, 2, 3, 4, -5, 6, 7, 8, 9}
+		err := Execute(data, fn, i, true)
+		if err == nil {
+			t.Error("expected an error")
 			return
 		}
 
-		e2, isTaskPanic := err.(TaskPanic)
-		if isTaskPanic {
-			fmt.Println("we had a task panic:", e2)
+		te, isTaskError := err.(TaskError)
+		if !isTaskError {
+			t.Error("expected err to be a *TaskError:", err)
+			return
+		}
+		if te.Index != 5 {
+			t.Error("expected Index to be 5")
+		}
+		if te.Task == nil {
+			t.Error("expected Task != nil")
+		}
+		if te.Message == "" {
+			t.Error("expected Message != \"\"")
+		}
 
+		if t.Failed() {
+			t.Log(err)
+		}
+	}
+}
+
+func TestPanic(t *testing.T) {
+
+	for i := -1; i < 10; i++ {
+		fmt.Printf("parallel : %d - with panic\n", i)
+		data := []int{0, 1, 2, 3, 13, 5, 6, 7, 8, 9}
+		err := Execute(data, fn, i, true)
+		if err == nil {
+			t.Error("expected an error")
 			return
 		}
 
-		fmt.Println("oh no:", err)
+		te, isTaskPanic := err.(TaskPanic)
+		if !isTaskPanic {
+			t.Error("expected err to be a *TaskPanic:", err)
+			return
+		}
+		if te.Index != 4 {
+			t.Error("expected Index to be 4")
+		}
+		if te.Task == nil {
+			t.Error("expected Task != nil")
+		}
+		if te.Message == "" {
+			t.Error("expected Message != \"\"")
+		}
+		if te.StackTrace == "" {
+			t.Error("expected StackTrace != \"\"")
+		}
 
-		return
+		if t.Failed() {
+			t.Log(err)
+		}
 	}
 
-	//pretty.Print(data)
-
-	log.Println(data)
 }

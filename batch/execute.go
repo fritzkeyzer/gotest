@@ -34,8 +34,7 @@ func Execute[T any](tasks []T, taskFn func(v T) error, parallel int, showProgres
 	var status int32 = 1
 
 	// initialise error variables
-	var taskError TaskError
-	var taskPanic TaskPanic
+	errLock := &sync.Mutex{}
 
 	// progress bar:
 	var progressBar *ProgressBar
@@ -47,27 +46,28 @@ func Execute[T any](tasks []T, taskFn func(v T) error, parallel int, showProgres
 
 	// start task executions
 	for i, t := range tasks {
-		// copy data
-		task := t
-		taskI := i
-
 		// block here if all threads are busy
 		queue <- true
 
 		// start execution on new thread
-		go func() {
+		// pass values into closure - preventing thread misreads
+		go func(task T, taskI int) {
 			defer func() {
 				if r := recover(); r != nil {
-					taskPanic = TaskPanic{
-						ErrIndex: taskI,
-						ErrMsg:   fmt.Sprintf("%v: %v", r, string(debug.Stack())),
-					}
+					errLock.Lock()
+					defer errLock.Unlock()
 
-					// cancel further executions - better than breaking early, because of wg.Wait()
+					// cancel further executions
 					atomic.StoreInt32(&status, -1)
 
-					if progressBar != nil {
-						progressBar.Cancel()
+					// only save panic if err is nil
+					if err == nil {
+						err = TaskPanic{
+							Index:      taskI,
+							Task:       task,
+							Message:    fmt.Sprint(r),
+							StackTrace: string(debug.Stack()),
+						}
 					}
 				}
 
@@ -82,28 +82,28 @@ func Execute[T any](tasks []T, taskFn func(v T) error, parallel int, showProgres
 			// if not cancelled, run task
 			if atomic.LoadInt32(&status) == 1 {
 				// execute task
-				e := taskFn(task)
+				if err2 := taskFn(task); err2 != nil {
+					errLock.Lock()
+					defer errLock.Unlock()
 
-				// collect errors
-				if e != nil {
-					if taskError.ErrMap == nil {
-						taskError.ErrMap = make(map[int]string)
+					// cancel further executions
+					atomic.StoreInt32(&status, -1)
+
+					// only save error if err is nil
+					if err == nil {
+						err = TaskError{
+							Index:   taskI,
+							Task:    task,
+							Message: err2.Error(),
+						}
 					}
-					taskError.ErrMap[taskI] = e.Error()
 				}
 			}
-		}()
+		}(t, i)
 	}
 
 	// block further execution until all tasks have completed
 	wg.Wait()
 
-	// check errors and return
-	if taskPanic.IsError() {
-		return taskPanic
-	}
-	if taskError.IsError() {
-		return taskError
-	}
-	return nil
+	return err
 }
